@@ -26,3 +26,7 @@ a {
 .message .author {
   font-weight: bold;
 }
+
+.message .comment {
+  word-wrap: break-word;
+}
