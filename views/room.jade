@@ -1,0 +1,30 @@
+extends layout
+block content
+
+  .navbar.navbar-inverse.navbar-fixed-top
+    .navbar-inner
+      .container
+        a.brand(href='/') minichat
+        ul.nav
+          li 
+            a ルーム名：#{room.name}
+          li
+            a(href='/') 退出する
+  .container
+    .row
+      .span4
+        h3
+          span#yourname #{user.name}
+        form(action='#')
+          label
+            textarea#new-message.span4(rows='5', placeholder='メッセージを入力...')
+          button(type='submit', class='btn') メッセージを投稿
+      .span8
+        #messages.well
+          .message
+            p.postdate.pull-right 10/23 12:34
+            p.author システムメッセージ：
+            p.comment チャットルーム「hogehoge」が作成されました。
+  hr
+  footer
+    p minichat 0.0.1
