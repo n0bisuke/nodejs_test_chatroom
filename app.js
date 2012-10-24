@@ -37,3 +37,30 @@ var io = socketIO.listen(server);
 server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
+
+var socketsOf = {};
+
+io.sockets.on('connection', function (socket) {
+  socket.emit('connected', {});
+  socket.on('regist request', function (data) {
+    console.log('regist client for ' + data.roomId);
+    if (socketsOf[data.roomId] !== undefined) {
+      socketsOf[data.roomId].push(socket);
+    } else {
+      socketsOf[data.roomId] = [socket];
+    }
+  });
+
+  socket.on('say', function (data) {
+    console.log('receive message');
+    socket.emit('say accept', {});
+    if (socketsOf[data.roomId] !== undefined) {
+      var targets = socketsOf[data.roomId];
+      for (var i = 0; i < targets.length; i++) {
+        targets[i].emit('push message', data);
+      }
+    }
+  });
+
+});
+

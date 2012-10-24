@@ -9,13 +9,24 @@ exports.index = function(req, res){
 };
 
 exports.echo = function(req, res) {
+  var roomName = req.params.name;
+  var yourName = 'test';
+  var password = 'minichattest';
+  var hashedPassword = '';
+  var shasum = crypto.createHash('sha512');
+
+  if (password !== '') {
+    shasum.update(password);
+    hashedPassword = shasum.digest('hex');
+  }
+
   var params = {
-    title: 'チャットルーム：' + req.params.name,
+    title: 'チャットルーム：' + roomName,
     room: {
-      name: req.params.name,
-      password: ''
+      name: roomName,
+      password: hashedPassword
     },
-    user: {name: ''}
+    user: {name: yourName}
   };
   res.render('room', params);
 };
