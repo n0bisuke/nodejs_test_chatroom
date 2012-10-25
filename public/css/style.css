@@ -9,12 +9,13 @@ a {
 }
 
 #messages {
-  margin-top: 60px;
+  margin-top: 20px;
   background: white;
   border: 1px solid #bbb;
 }
 
 .message {
+  margin-top: 8px;
   border-bottom: 1px solid #ddd;
   line-height: 120%;
 }
@@ -29,4 +30,16 @@ a {
 
 .message .comment {
   word-wrap: break-word;
+}
+
+#members-box {
+  border-top: 1px solid #ddd;
+}
+
+#members-box ul {
+  margin: 0 0 0 10px;;
+}
+#members-box li {
+  font-size: 100%;
+  list-style: none;
 }

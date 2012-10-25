@@ -38,29 +38,50 @@ server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
 
+// socket.ioのソケットを管理するオブジェクト
 var socketsOf = {};
 
+// socket.ioのコネクション設定
 io.sockets.on('connection', function (socket) {
+  // コネクションが確立されたら'connected'メッセージを送信する
   socket.emit('connected', {});
-  socket.on('regist request', function (data) {
-    console.log('regist client for ' + data.roomId);
-    if (socketsOf[data.roomId] !== undefined) {
-      socketsOf[data.roomId].push(socket);
-    } else {
-      socketsOf[data.roomId] = [socket];
+
+  // クライアントは'connected'メッセージを受信したら、
+  // クライアントの情報とともに'regist request'メッセージを送信する
+  socket.on('regist request', function (client) {
+    console.log('regist client');
+    if (socketsOf[client.roomId] === undefined) {
+      socketsOf[client.roomId] = {};
     }
+    socketsOf[client.roomId][client.userName] = socket;
   });
 
-  socket.on('say', function (data) {
+  // クライアントは'say'メッセージとともにチャットメッセージを送信する
+  socket.on('say', function (message) {
     console.log('receive message');
     socket.emit('say accept', {});
-    if (socketsOf[data.roomId] !== undefined) {
-      var targets = socketsOf[data.roomId];
-      for (var i = 0; i < targets.length; i++) {
-        targets[i].emit('push message', data);
-      }
+    message.date = _formatDate(new Date());
+    if (socketsOf[message.roomId] !== undefined) {
+      var sockets = socketsOf[message.roomId];
+      Object.keys(sockets).forEach(function (key) {
+        sockets[key].emit('push message', message);
+      });
     }
   });
 
 });
+
+function _formatDate(date) {
+  var mm = date.getMonth();
+  var dd = date.getDate();
+  var HH = date.getHours();
+  var MM = date.getMinutes();
+  if (HH < 10) {
+    HH = '0' + HH;
+  }
+  if (MM < 10) {
+    MM = '0' + MM;
+  }
+  return mm + '/' + dd + ' ' + HH + ':' + MM;
+};
 

@@ -27,6 +27,10 @@ block content
           label
             textarea#message.span4(rows='5', placeholder='メッセージを入力...')
           button#post-message.btn.btn-primary(type='button') メッセージを投稿
+        #members-box
+          h5 チャットメンバー：
+          ul#members
+            li #{user.name}
       .span8
         #messages.well
           .message
