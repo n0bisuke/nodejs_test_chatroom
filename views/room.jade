@@ -6,7 +6,8 @@ block content
       roomName: '#{room.name}',
       password: '#{room.password}',
       userName: '#{user.name}',
-      roomId: '#{room.name}#{room.password}'
+      roomId: '#{room.name}#{room.password}',
+      mode: '#{mode}'
     };
 
   .navbar.navbar-inverse.navbar-fixed-top
@@ -18,7 +19,7 @@ block content
             a ルーム名：#{room.name}
           li
             a(href='/') 退出する
-  .container
+  #main-contents.container
     .row
       .span4
         h3
@@ -30,14 +31,35 @@ block content
         #members-box
           h5 チャットメンバー：
           ul#members
-            li #{user.name}
       .span8
         #messages.well
-          .message
-            p.postdate.pull-right 10/23 12:34
-            p.author システムメッセージ：
-            p.comment チャットルーム「hogehoge」が作成されました。HASH: #{room.password}
 
+  // 入室時の確認ダイアログ
+  // パスワードが不正
+  #credentialDialog.modal.hide(data-backdrop='static', keyboard='false')
+    .modal-header
+      h3#credential-dialog-header 入室エラー
+    .modal-body
+      p#credential-dialog-message ルーム情報や名前を再入力してください：
+      form#credential-dialog-form.form-horizontal
+        .control-group
+          label.control-label(for='new-room-name') ルーム名
+          .controls
+            input#new-room(type='text', name='roomName', placeholder='ルーム名を入力...')
+        .control-group
+          label.control-label(for='new-name') 表示するあなたの名前
+          .controls
+            input#new-name(type='text', name='yourName', placeholder='表示名を入力...')
+        .control-group
+          label.control-label(for='new-password') 認証用パスワード
+          .controls
+            label
+              input#new-password(type='password', name='password', placeholder='パスワードを入力...')
+            button.btn.btn-primary(type='submit') 再試行
+
+    .modal-footer
+      a(href='/') トップページへ戻る
+    
 
   hr
   footer

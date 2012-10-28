@@ -10,6 +10,7 @@ var express = require('express')
   , socketIO = require('socket.io');
 
 var app = express();
+var crypto = require('crypto');
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
@@ -29,10 +30,9 @@ app.configure('development', function(){
 
 app.get('/', routes.index);
 app.post('/room', routes.room);
-app.get('/echo/:name', routes.echo);
 
 var server = http.createServer(app);
-var io = socketIO.listen(server);
+var io = socketIO.listen(server, {log:false});
 
 server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
@@ -41,32 +41,148 @@ server.listen(app.get('port'), function(){
 // socket.ioのソケットを管理するオブジェクト
 var socketsOf = {};
 
+// 指定したroomIdに属するクライアントすべてに対しイベントを送信する
+function emitToRoom(roomId, event, data, fn) {
+  if (socketsOf[roomId] === undefined) {
+    return;
+  }
+  var sockets = socketsOf[roomId];
+  Object.keys(sockets).forEach(function (key) {
+    sockets[key].emit(event, data, fn);
+  });
+};
+
 // socket.ioのコネクション設定
 io.sockets.on('connection', function (socket) {
+
   // コネクションが確立されたら'connected'メッセージを送信する
   socket.emit('connected', {});
 
-  // クライアントは'connected'メッセージを受信したら、
-  // クライアントの情報とともに'regist request'メッセージを送信する
-  socket.on('regist request', function (client) {
-    console.log('regist client');
-    if (socketsOf[client.roomId] === undefined) {
+  // 認証情報を確認する
+  socket.on('hash password', function (password, fn) {
+    var hashedPassword = '';
+    var shasum = crypto.createHash('sha512');
+
+    if (password !== '') {
+      shasum.update('initialhash');
+      shasum.update(password);
+      hashedPassword = shasum.digest('hex');
+    }
+    fn(hashedPassword);
+  });
+
+  // 認証情報を確認する
+  socket.on('check credential', function (client) {
+    // クライアントはconnectedメッセージを受信したら、minichatオブジェクトを
+    // 引数にこのメッセージを送信する
+
+    // 認証情報の確認
+    if (client.mode == 'create') {
+      // modeが'create'の場合、すでに対応するroomIdのチャットルームがないか
+      // チェックする
+      if (socketsOf[client.roomId] !== undefined) {
+        socket.emit('room exists', {});
+        return;
+      }
       socketsOf[client.roomId] = {};
     }
-    socketsOf[client.roomId][client.userName] = socket;
+
+    if (client.mode == 'enter') {
+      // 対応するroomIdのチャットルームの存在をチェックする
+      if (socketsOf[client.roomId] === undefined) {
+        socket.emit('invalid credential', {});
+        return;
+      }
+      // ユーザー名がかぶっていないかチェックする
+      if (socketsOf[client.roomId][client.userName] !== undefined) {
+        socket.emit('userName exists', {});
+        return;
+      }
+    }
+
+    // ソケットにクライアントの情報をセットする
+    socket.set('client', client, function () {
+      socketsOf[client.roomId][client.userName] = socket;
+      if (client.userName) {
+        console.log('user ' + client.userName + '@' + client.roomId + ' connected');
+      }
+    });
+
+    // 認証成功
+    socket.emit('credential ok', {});
+
+    // 既存クライアントにメンバーの変更を通知する
+    var members = Object.keys(socketsOf[client.roomId]);
+    emitToRoom(client.roomId, 'update members', members);
+
+    var shasum = crypto.createHash('sha1')
+    var message = {
+        from: 'システムメッセージ',
+        body: client.userName + 'さんが入室しました',
+        roomId: client.roomId
+    }
+    message.date = _formatDate(new Date());
+    shasum.update('-' + message.roomId);
+    message.id = (new Date()).getTime() + '-' + shasum.digest('hex');
+    emitToRoom(message.roomId, 'push message', message);
+
+  });
+
+  // ソケットが切断された場合、ソケット一覧からソケットを削除する
+  socket.on('disconnect', function () {
+    socket.get('client', function (err, client) {
+      if (err || !client) {
+        return;
+      }
+      var sockets = socketsOf[client.roomId];
+      if(sockets !== undefined) {
+        delete sockets[client.userName];
+      }
+      console.log('user ' + client.userName + '@' + client.roomId + ' disconnected');
+      var members = Object.keys(sockets);
+      if (members.length === 0) {
+        delete socketsOf[client.roomId];
+      } else {
+        // 既存クライアントにメンバーの変更を通知する
+        emitToRoom(client.roomId, 'update members', members);
+        var message = {
+          from: 'システムメッセージ',
+          body: client.userName + 'さんが退室しました',
+          roomId: client.roomId
+        }
+        var shasum = crypto.createHash('sha1')
+        message.date = _formatDate(new Date());
+        shasum.update('-' + message.roomId);
+        message.id = (new Date()).getTime() + '-' + shasum.digest('hex');
+        emitToRoom(message.roomId, 'push message', message);
+
+      }
+    });
   });
 
   // クライアントは'say'メッセージとともにチャットメッセージを送信する
-  socket.on('say', function (message) {
+  socket.on('say', function (message, fn) {
     console.log('receive message');
-    socket.emit('say accept', {});
+
+    var shasum = crypto.createHash('sha1')
     message.date = _formatDate(new Date());
-    if (socketsOf[message.roomId] !== undefined) {
-      var sockets = socketsOf[message.roomId];
-      Object.keys(sockets).forEach(function (key) {
-        sockets[key].emit('push message', message);
+    shasum.update(message.userName + '-' + message.roomId);
+    message.id = (new Date()).getTime() + '-' + shasum.digest('hex');
+    emitToRoom(message.roomId, 'push message', message);
+    // クライアント側のコールバックを実行する
+    fn();
+  });
+
+  // クライアントはログが必要な場合'request log'メッセージを送信する
+  socket.on('request log', function (data) {
+    socket.get('client', function (err, client) {
+      if (err || client === undefined) {
+        return;
+      }
+      emitToRoom(client.roomId, 'request log', {}, function (log) {
+        socket.emit('update log', log);
       });
-    }
+    });
   });
 
 });
