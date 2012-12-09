@@ -15,15 +15,12 @@ block content
       .container
         a.brand(href='/') minichat
         ul.nav
-          li 
-            a ルーム名：#{room.name}
-          li
-            a(href='/') 退出する
+          li: a ルーム名：#{room.name}
+          li: a(href='/') 退出する
   #main-contents.container
     .row
       .span4
-        h3
-          span#yourname #{user.name}
+        h3: span#yourname #{user.name}
         form
           label
             textarea#message.span4(rows='5', placeholder='メッセージを入力...')
@@ -59,7 +56,6 @@ block content
 
     .modal-footer
       a(href='/') トップページへ戻る
-    
 
   hr
   footer
