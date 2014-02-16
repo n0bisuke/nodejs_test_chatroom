@@ -1,0 +1,98 @@
+<html>
+	<head>
+		<title><%= title %></title>
+		<link rel="stylesheet" href="/css/style.css"/>
+		<link rel="stylesheet" href="/css/bootstrap.css"/>
+		<script src="/js/jquery-1.8.2.min.js"></script>
+		<script src="/js/bootstrap.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+	</head>
+
+	<body>
+		<script src="/js/room.js"></script>
+		<script>
+			var minichat = {
+				roomName: "<%= room.name %>",
+				password: "<%= room.password %>",
+      			userName: "<%= user.name %>",
+      			roomId: "<%= room.name %><%= room.password%>",
+      			mode: "<%= mode%>"
+			}
+		</script>
+		<div class="navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<a href="/" class="brand">minichat</a>
+					<ul class="nav">
+						<li>
+							<a>ルーム名：<%= room.name %></a>
+						</li>
+						<li>
+							<a href="/">退出する</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div id="main-contents" class="container">
+			<div class="row">
+				<div class="span4">
+					<h3>
+						<span id="yourname"><%= user.name %></span>
+					</h3>
+					<form>
+						<label>
+							<textarea id="message" rows="5" placeholder="メッセージを入力..." class="span4"></textarea>
+						</label>
+						<button id="post-message" type="button" class="btn btn-primary">メッセージを投稿</button>
+					</form>
+					<div id="members-box">
+						<h5>チャットメンバー：</h5>
+						<ul id="members"></ul>
+					</div>
+				</div>
+				<div class="span8">
+					<div id="messages" class="well"></div>
+				</div>
+			</div>
+		</div>
+		<!-- 入室時の確認ダイアログ--><!-- パスワードが不正-->
+		<div id="credentialDialog" data-backdrop="static" keyboard="false" class="modal hide">
+			<div class="modal-header">
+				<h3 id="credential-dialog-header">入室エラー</h3>
+			</div>
+			<div class="modal-body">
+				<p id="credential-dialog-message">ルーム情報や名前を再入力してください：</p>
+				<form id="credential-dialog-form" class="form-horizontal">
+					<div class="control-group">
+						<label for="new-room-name" class="control-label">ルーム名</label>
+						<div class="controls">
+							<input id="new-room" type="text" name="roomName" placeholder="ルーム名を入力..."/></div>
+						</div>
+						<div class="control-group">
+							<label for="new-name" class="control-label">表示するあなたの名前</label>
+							<div class="controls">
+								<input id="new-name" type="text" name="yourName" placeholder="表示名を入力..."/>
+							</div>
+						</div>
+						<div class="control-group">
+							<label for="new-password" class="control-label">認証用パスワード</label>
+							<div class="controls">
+								<label>
+									<input id="new-password" type="password" name="password" placeholder="パスワードを入力..."/>
+								</label>
+								<button type="submit" class="btn btn-primary">再試行</button>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<a href="/">トップページへ戻る</a>
+				</div>
+			</div>
+			<hr/>
+			<footer>
+				<p>minichat 0.0.1</p>
+			</footer>
+		</body>
+		</html>

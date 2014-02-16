@@ -1,0 +1,80 @@
+<html>
+	<head>
+		<title>minichat</title>
+		<link rel="stylesheet" href="/css/style.css"/>
+		<link rel="stylesheet" href="/css/bootstrap.css"/>
+		<script src="/js/jquery-1.8.2.min.js"></script>
+		<script src="/js/bootstrap.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+	</head>
+
+	<body>
+		<div class="container">
+			<div class="hero-unit">
+				<h1>minichat</h1>
+				<p>node.jsによるシンプルなチャットWebアプリケーション</p>
+			</div>
+			<div class="row">
+				<div class="span6">
+					<h2>Create:</h2>
+					<p>チャットルームを新しく作成する</p>
+					<form id="new" action="/room/" method="post" class="form-horizontal">
+						<div class="control-group">
+							<label for="new-room-name" class="control-label">作成するルーム名</label>
+							<div class="controls">
+								<input id="new-room" type="text" name="roomName" placeholder="ルーム名を入力..."/>
+							</div>
+						</div>
+
+						<div class="control-group">
+							<label for="new-name" class="control-label">表示するあなたの名前</label>
+							<div class="controls">
+								<input id="new-name" type="text" name="yourName" placeholder="表示名を入力..."/>
+							</div>
+						</div>
+						<div class="control-group">
+							<label for="new-password" class="control-label">認証用パスワード</label>
+							<div class="controls">
+								<label>
+									<input id="new-password" type="password" name="password" placeholder="パスワードを入力..."/>
+								</label>
+								<button type="submit" name="mode" value="create" class="btn">チャットルームを作成</button>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="span6">
+					<h2>Enter:</h2>
+					<p>既存のチャットルームに入る</p>
+					<form id="enter" action="/room/" method="post" class="form-horizontal">
+						<div class="control-group">
+							<label for="enter-room" class="control-label">ルーム名</label>
+							<div class="controls">
+								<input id="enter-room" type="text" name="roomName" placeholder="ルーム名を入力..."/>
+							</div>
+						</div>
+						<div class="control-group">
+							<label for="enter-name" class="control-label">表示するあなたの名前</label>
+							<div class="controls">
+								<input id="enter-name" type="text" name="yourName" placeholder="表示名を入力..."/>
+							</div>
+						</div>
+						<div class="control-group">
+							<label for="enter-password" class="control-label">認証用パスワード</label>
+							<div class="controls">
+								<label>
+									<input id="enter-password" type="password" name="password" placeholder="パスワードを入力..."/>
+								</label>
+								<button type="submit" name="mode" value="enter" class="btn">チャットルームへ入る</button>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<hr/>
+		<footer>
+			<p>minichat 0.0.1</p>
+		</footer>
+	</body>
+</html>
